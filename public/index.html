@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>增删改查 Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+    input, button {
+      margin-right: 0.5rem;
+      padding: 0.5rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+    }
+    .item input {
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>CRUD 示例</h1>
+
+  <input type="text" id="newItem" placeholder="输入名称" />
+  <button onclick="createItem()">新增</button>
+
+  <ul id="itemList"></ul>
+
+  <script>
+    const API_URL = 'http://localhost:3000/items';
+
+    async function fetchItems() {
+      const res = await fetch(API_URL);
+      const items = await res.json();
+
+      const list = document.getElementById('itemList');
+      list.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="item">
+            <input value="${item.name}" onchange="updateItem(${item.id}, this.value)" />
+            <button onclick="deleteItem(${item.id})">删除</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function createItem() {
+      const name = document.getElementById('newItem').value;
+      if (!name) return alert('请输入名称');
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+
+      document.getElementById('newItem').value = '';
+      fetchItems();
+    }
+
+    async function updateItem(id, name) {
+      await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+    }
+
+    async function deleteItem(id) {
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      fetchItems();
+    }
+
+    fetchItems(); // 初始化加载
+  </script>
+</body>
+</html>
